@@ -1,5 +1,5 @@
-#ifndef INCLUDE_GUARD
-#define INCLUDE_GUARD
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #define PROJECT_NAME "@PROJECT_NAME@"
 #define PROJECT_VER  "@loudgain_VERSION@"
@@ -7,6 +7,4 @@
 #define PROJECT_VER_MINOR "@VERSION_MINOR@"
 #define PROJECT_VER_PATCH "@VERSION_PATCH@"
 
-#cmakedefine HAVE_PTY_H
-
-#endif // INCLUDE_GUARD
+#endif

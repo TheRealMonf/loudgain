@@ -1,99 +1,117 @@
-# loudgain CMakeLists.txt
-# Copyright (C) 2014 Alessandro Ghedini <alessandro@ghedini.me>
-# Modifications Copyright (C) 2019 Matthias C. Hormann <mhormann@gmx.de>
-# This file is released under the 2 clause BSD license, see COPYING
+cmake_minimum_required(VERSION 3.14)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(loudgain C CXX)
+project(Loudgain LANGUAGES C CXX)
 
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-SET(VERSION_MAJOR 0)
-SET(VERSION_MINOR 6)
-SET(VERSION_PATCH 8)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-SET(loudgain_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 
-SET(INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 7)
+set(VERSION_PATCH 0)
 
-INCLUDE(FindPkgConfig)
+set(loudgain_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
-IF (APPLE)
-  # Fix linking on 10.14+. See https://stackoverflow.com/questions/54068035
-  LINK_DIRECTORIES(/usr/local/lib)
-ENDIF (APPLE)
+set(INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
+file(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.c" "src/*.cpp")
 
-PKG_CHECK_MODULES(LAVC libavcodec REQUIRED)
-PKG_CHECK_MODULES(LAVF libavformat REQUIRED)
-PKG_CHECK_MODULES(LAVR libswresample REQUIRED)
-PKG_CHECK_MODULES(LAVU libavutil REQUIRED)
-PKG_CHECK_MODULES(LTAG taglib REQUIRED)
+add_executable(Loudgain ${SOURCES})
 
-FIND_PACKAGE(EBUR128)
+configure_file("config.h.in" "config.h")
 
-IF (NOT EBUR128_FOUND)
-  MESSAGE(FATAL_ERROR "libebur128 not found.")
-ENDIF (NOT EBUR128_FOUND)
+if (MSVC)
+    add_definitions(-DTAGLIB_STATIC)
 
-FILE(GLOB SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cc" "src/*.c")
+    include_directories(
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/argparse
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ebur128/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/taglib/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/include
+      ${CMAKE_CURRENT_BINARY_DIR})
 
-ADD_EXECUTABLE(loudgain ${SOURCES})
+    target_link_libraries(Loudgain
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/taglib/lib/tag.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ebur128/lib/ebur128.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/swresample.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/avformat.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/avcodec.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/avutil.lib)
 
-INCLUDE_DIRECTORIES(
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${EBUR128_INCLUDE_DIR}
-  ${LAVC_INCLUDE_DIRS}
-  ${LAVF_INCLUDE_DIRS}
-  ${LAVR_INCLUDE_DIRS}
-  ${LAVU_INCLUDE_DIRS}
-  ${LTAG_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_BINARY_DIR}
-)
+    set_target_properties(Loudgain PROPERTIES COMPILE_FLAGS "/EHsc /W4 /O2 /MD")
+    set(CMAKE_C_FLAGS " /O2 /MD")
+    set(CMAKE_CXX_FLAGS " /O2 /MD")
 
-# Mac OS X has no pty.h
-INCLUDE (CheckIncludeFiles)
-CHECK_INCLUDE_FILES (pty.h HAVE_PTY_H)
+elseif (MINGW)
+    add_definitions(-DTAGLIB_STATIC)
 
-CONFIGURE_FILE("config.h.in" "config.h")
+    include_directories(
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/argparse
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ebur128/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/taglib/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/include
+      ${CMAKE_CURRENT_BINARY_DIR})
 
-SET(LIBS )
+    target_link_libraries(Loudgain
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/taglib/lib/libtag.a
+        z
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ebur128/lib/libebur128.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/libswresample.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/libavformat.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/libavcodec.a
+        ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ffmpeg/lib/libavutil.a
+        bcrypt)
 
-TARGET_LINK_LIBRARIES(loudgain
-  ${EBUR128_LIBRARY}
-  ${LAVC_LIBRARIES}
-  ${LAVF_LIBRARIES}
-  ${LAVR_LIBRARIES}
-  ${LAVU_LIBRARIES}
-  ${LTAG_LIBRARIES}
-)
+    set_target_properties(Loudgain PROPERTIES COMPILE_FLAGS "-Wall -O3 -static")
+    set(CMAKE_C_FLAGS "-O3 -static")
+    set(CMAKE_CXX_FLAGS "-O3 -static")
 
-SET_TARGET_PROPERTIES(loudgain PROPERTIES
-  COMPILE_FLAGS "-Wall -pedantic -g"
-)
+elseif (UNIX)
+    find_package( PkgConfig )
+    PKG_CHECK_MODULES(LAVC libavcodec REQUIRED)
+    PKG_CHECK_MODULES(LAVF libavformat REQUIRED)
+    PKG_CHECK_MODULES(LAVR libswresample REQUIRED)
+    PKG_CHECK_MODULES(LAVU libavutil REQUIRED)
+    PKG_CHECK_MODULES(LTAG taglib REQUIRED)
+    PKG_CHECK_MODULES(LEBU libebur128 REQUIRED)
 
-SET(CMAKE_C_FLAGS "-std=gnu99 -D_GNU_SOURCE")
+    include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/argparse
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LEBU_INCLUDE_DIRS}
+        ${LAVC_INCLUDE_DIRS}
+        ${LAVF_INCLUDE_DIRS}
+        ${LAVR_INCLUDE_DIRS}
+        ${LAVU_INCLUDE_DIRS}
+        ${LTAG_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_BINARY_DIR})
 
-SET(CMAKE_CXX_FLAGS "-std=gnu++11 -D_GNU_SOURCE")
+    target_link_libraries(Loudgain
+        ${LEBU_LIBRARIES}
+        ${LAVC_LIBRARIES}
+        ${LAVF_LIBRARIES}
+        ${LAVR_LIBRARIES}
+        ${LAVU_LIBRARIES}
+        ${LTAG_LIBRARIES})
 
-INSTALL(TARGETS loudgain DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-
-INSTALL(FILES
-  ${PROJECT_SOURCE_DIR}/docs/loudgain.1
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-)
-INSTALL(PROGRAMS
-  ${PROJECT_SOURCE_DIR}/bin/rgbpm
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-)
-
-# provide 'uninstall' target
-if(NOT TARGET uninstall)
-    configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-        IMMEDIATE @ONLY)
-
-    add_custom_target(uninstall
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    set_target_properties(Loudgain PROPERTIES COMPILE_FLAGS "-Wall -O3")
+    set(CMAKE_C_FLAGS "-O3")
+    set(CMAKE_CXX_FLAGS "-O3")
 endif()
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
+install(TARGETS Loudgain DESTINATION ${CMAKE_INSTALL_PREFIX}/Loudgain)

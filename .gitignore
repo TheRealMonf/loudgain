@@ -1,6 +1,9 @@
 # exclude cmake build dir
 /build
 
+# exclude win32 dependencies dir
+/dependencies
+
 # exclude Debian packaging stuff
 /debian/.debhelper
 /debian/loudgain*
