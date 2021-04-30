@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
     else
         lg.setTagMode('s');
     lg.setUnitToLUFS(parser.get<bool>("--lufs"));
-    lg.setPregain(parser.get<double>("--pregain"));
+    lg.setPregain(parser.get<double>("--pre-gain"));
     lg.setWarnClipping(!parser.get<bool>("--ignore-clipping"));
     lg.setPreventClipping(parser.get<bool>("--prevent-clipping"));
     if (parser.present("--max-true-peak-level"))
