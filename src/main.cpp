@@ -131,43 +131,43 @@ int main(int argc, char *argv[])
     argparse::ArgumentParser parser("Loudgain");
 
     parser.add_argument("--version", "-v").default_value(false).implicit_value(true)
-            .help("Show version number and exit");
+            .help("Show version number and exit.");
 
     parser.add_argument("--track", "-t").implicit_value(true)
-            .help("Calculate track gain only (default)");
+            .help("Calculate track gain only (default).");
 
     parser.add_argument("--album", "-a").default_value(false).implicit_value(true)
-            .help("Calculate album gain (and track gain)");
+            .help("Calculate album gain (and track gain).");
 
     parser.add_argument("--ignore-clipping", "-i").default_value(false).implicit_value(true)
-            .help("Ignore clipping warning");
+            .help("Ignore clipping warning.");
 
     parser.add_argument("--prevent-clipping", "-p").default_value(false).implicit_value(true)
-            .help("Lower track/album gain to avoid clipping (<= -1 dBTP)");
+            .help("Lower track/album gain to avoid clipping (<= -1 dBTP).");
 
     parser.add_argument("--max-true-peak-level", "-P").nargs(1)
-            .help("Avoid clipping. Max true peak level = n dBTP");
+            .help("Avoid clipping. Max true peak level = n dBTP.");
 
-    parser.add_argument("--pregain", "-G").default_value(0.0).nargs(1)
+    parser.add_argument("--pre-gain", "-G").default_value(0.0).nargs(1)
             .action([](const std::string& value) { return std::stod(value); })
-            .help("Apply n dB/LU pre-gain value (-5 for -23 LUFS target)");
+            .help("Apply n dB/LU pre-gain value (-5 for -23 LUFS target).");
 
     parser.add_argument("--tagmode", "-S").nargs(1)
             .help("-S d: Delete ReplayGain tags from files\n"
-                  "\t\t\t-S i: Write ReplayGain 2.0 tags to files\n"
-                  "\t\t\t-S e: Like '-S i', plus extra tags (reference, ranges)\n"
-                  "\t\t\t-S s: Don't write ReplayGain tags (default)");
+                  "\t\t\t\t-S i: Write ReplayGain 2.0 tags to files\n"
+                  "\t\t\t\t-S e: Like '-S i', plus extra tags (reference, ranges)\n"
+                  "\t\t\t\t-S s: Don't write ReplayGain tags (default)");
 
     parser.add_argument("--lufs", "-u").default_value(false).implicit_value(true)
             .help("Set unit to LUFS. Default is dB.");
 
     parser.add_argument("--lowercase", "-l").default_value(false).implicit_value(true)
             .help("Force lowercase tags (MP2/MP3/MP4/WMA/WAV/AIFF).\n"
-                  "\t\t\tThis is non-standard but sometimes needed.");
+                  "\t\t\t\tThis is non-standard but sometimes needed.");
 
     parser.add_argument("--striptags", "-s").default_value(false).implicit_value(true)
             .help("Strip tag types other than ID3v2 from MP2/MP3.\n"
-                  "\t\t\tStrip tag types other than APEv2 from WavPack/APE.");
+                  "\t\t\t\tStrip tag types other than APEv2 from WavPack/APE.");
 
     parser.add_argument("--id3v2version", "-I").default_value(4).nargs(1)
             .action([](const std::string& value) { return std::stoi(value); })
@@ -175,26 +175,26 @@ int main(int argc, char *argv[])
 
     parser.add_argument("--multithread", "-M").default_value(0).nargs(1)
             .action([](const std::string& value) { return std::stoi(value); })
-            .help("Enable multithreading; n = max number of threads");
+            .help("Enable multithreading, n = max number of threads.");
 
     parser.add_argument("--output-tab", "-o").default_value(false).implicit_value(true)
-            .help("Prints tab-delimited list output");
+            .help("Prints tab-delimited list output.");
 
     parser.add_argument("--output-csv", "-O").nargs(1)
-            .help("Writes comma separated values to file");
+            .help("Writes comma separated values to file.");
 
     parser.add_argument("--recursive", "-r").default_value(false).implicit_value(true)
-            .help("Recursive directory and file scan");
+            .help("Recursive directory and file scan.");
 
     parser.add_argument("--extensions", "-E").nargs(1)
-            .help("Limit scan to specified extensions");
+            .help("Limit scan to specified extensions.");
 
-    parser.add_argument("--verbosity", "-V").default_value(1).nargs(1)
+    parser.add_argument("--verbosity", "-V").default_value(2).nargs(1)
             .action([](const std::string& value) { return std::stoi(value); })
-            .help("Set vebosity level");
+            .help("Set vebosity level.");
 
     parser.add_argument("--quiet", "-q").default_value(false).implicit_value(true)
-            .help("Don't print scanning status messages");
+            .help("Don't print scanning status messages. Equal to \"-V 1\".");
 
     parser.add_argument("FILES").remaining();
 

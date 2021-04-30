@@ -815,9 +815,9 @@ public:
                           std::string aVersion = "1.0")
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
     add_argument("-h", "--help").help("Shows help message and exits").nargs(0);
-    add_argument("-v", "--version")
-        .help("Prints version information and exits")
-        .nargs(0);
+    //add_argument("-v", "--version")
+    //    .help("Prints version information and exits")
+    //    .nargs(0);
   }
 
   ArgumentParser(ArgumentParser &&) noexcept = default;
@@ -1032,10 +1032,10 @@ private:
           std::exit(0);
         }
         // the second optional argument is --version
-        else if (tArgument == std::next(mOptionalArguments.begin(), 1)) {
-          std::cout << mVersion << "\n";
-          std::exit(0);
-        }
+        //else if (tArgument == std::next(mOptionalArguments.begin(), 1)) {
+        //  std::cout << mVersion << "\n";
+        //  std::exit(0);
+        //}
 
         it = tArgument->consume(std::next(it), end, tIterator->first);
       } else if (const auto &tCompoundArgument = tCurrentArgument;
