@@ -152,9 +152,8 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
     rc = avcodec_open2(ctx, codec, NULL);
     if (rc < 0)
     {
+        avcodec_free_context(&ctx);
         avformat_close_input(&container);
-        avcodec_close(ctx);
-
 
         char errbuf[2048];
         av_strerror(rc, errbuf, 2048);
@@ -194,7 +193,7 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
     if (!loudness)
     {
         scanStatus = SCANSTATUS::INIT;
-        avcodec_close(ctx);
+        avcodec_free_context(&ctx);
         avformat_close_input(&container);
         return true;
     }
@@ -204,8 +203,8 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
 
     if (eburState == NULL)
     {
+        avcodec_free_context(&ctx);
         avformat_close_input(&container);
-        avcodec_close(ctx);
 
         #pragma omp critical
         std::cerr << "[" << fileName << "] " << "Could not initialize EBU R128 scanner!" << std::endl;
@@ -218,7 +217,7 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
     if (frame == NULL)
     {
         avformat_close_input(&container);
-        avcodec_close(ctx);
+        avcodec_free_context(&ctx);
 
         #pragma omp critical
         std::cerr << "[" << fileName << "] " << "Could not allocate frame!" << std::endl;
@@ -272,7 +271,7 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
     /* Free */
     av_frame_free(&frame);
     swr_free(&swr);
-    avcodec_close(ctx);
+    avcodec_free_context(&ctx);
     avformat_close_input(&container);
 
     if (scanStatus == SCANSTATUS::FAIL)
