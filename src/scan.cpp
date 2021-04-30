@@ -122,7 +122,13 @@ bool AudioFile::scanFile(double pregain, bool loudness, bool verbose)
 
     /* select the audio stream */
     AVCodec *codec;
-    int stream_id = av_find_best_stream(container, AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
+    int stream_id;
+
+    #if ( LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(59,0,100) )
+        stream_id = av_find_best_stream(container, AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
+    #else
+        stream_id = av_find_best_stream(container, AVMEDIA_TYPE_AUDIO, -1, -1, const_cast<const AVCodec**>(&codec), 0);
+    #endif
 
     if (stream_id < 0)
     {
